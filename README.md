@@ -1,4 +1,4 @@
-# Crypto Portfolio Tracker
+# Crypto King Portfolio Tracker
 
 A Next.js application for tracking and managing cryptocurrency trades across multiple exchanges with real-time price updates and performance analytics.
 

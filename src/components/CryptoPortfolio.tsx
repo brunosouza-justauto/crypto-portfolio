@@ -851,13 +851,13 @@ const CryptoPortfolio = () => {
 
   return (
     <TooltipProvider>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Crypto Portfolio Tracker</h1>
-          <div className="flex gap-2">
+      <div className="p-1 sm:p-4">  {/* Less padding on mobile, normal padding on desktop */}
+        <div className="mb-6">
+          <h1 className="mb-4 text-2xl font-bold text-center">Crypto King Portfolio</h1>
+          <div className="flex justify-center gap-2">
             <button
               onClick={() => setIsAddTradeModalOpen(true)}
-              className="px-4 py-2 font-bold text-white bg-blue-500 rounded cursor-pointer hover:bg-blue-700"
+              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded cursor-pointer hover:bg-blue-700"
             >
               Add New Trade
             </button>
@@ -873,7 +873,7 @@ const CryptoPortfolio = () => {
             />
             <label
               htmlFor="excel-upload"
-              className="px-4 py-2 font-bold text-white bg-blue-500 rounded cursor-pointer hover:bg-blue-700"
+              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded cursor-pointer hover:bg-blue-700"
             >
               Import Trades
             </label>
@@ -919,9 +919,9 @@ const CryptoPortfolio = () => {
                   <button
                     onClick={updateAllPrices}
                     disabled={isUpdatingPrices}
-                    className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-300"
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-300"
                   >
-                    {isUpdatingPrices ? 'Updating Prices...' : 'Update Current Prices'}
+                    {isUpdatingPrices ? 'Updating Prices...' : 'Update Prices'}
                   </button>
                   
                   {lastUpdateTime && (
@@ -940,54 +940,54 @@ const CryptoPortfolio = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Total Paid Value</CardTitle>
+                <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-4">
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Total Paid Value</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-2xl font-bold">
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">
                         ${formatNumber(performance.totalValuePaid)}
                       </p>
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Current Value</CardTitle>
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Current Value</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-2xl font-bold">
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">
                         ${formatNumber(performance.totalCurrentValue)}
                       </p>
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Open P/L</CardTitle>
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Open P/L</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className={`text-2xl font-bold ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className={`text-lg font-bold sm:text-xl ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${formatNumber(performance.openTradesPL)}
                       </p>
-                      <p className={`text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`text-xs sm:text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatNumber((performance.openTradesPL / performance.totalValuePaid) * 100, 2)}%
                       </p>
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Open Trades</CardTitle>
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Open Trades</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-2xl font-bold">{performance.openTrades}</p>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">{performance.openTrades}</p>
                     </CardContent>
                   </Card>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="-mx-1 overflow-x-auto sm:mx-0">  {/* Negative margin on mobile to counter container padding */}
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
                       <tr className="bg-gray-50">
@@ -1232,12 +1232,12 @@ const CryptoPortfolio = () => {
                                     <td className="px-4 py-2">{formatNumber(aggregatedTrade['Buy Quantity'], 6)}</td>
                                     <td className="px-4 py-2">${formatNumber(aggregatedTrade['Buy Value'])}</td>
                                     <td className="px-4 py-2">
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
                                         <Button
                                           onClick={() => updateSinglePrice(aggregatedTrade)}
                                           variant="outline"
                                           size="sm"
-                                          className="w-24"
+                                          className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
                                         >
                                           Refresh
                                         </Button>
@@ -1248,7 +1248,7 @@ const CryptoPortfolio = () => {
                                           }}
                                           variant="outline"
                                           size="sm"
-                                          className="w-24"
+                                          className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
                                         >
                                           Sell
                                         </Button>
@@ -1408,7 +1408,7 @@ const CryptoPortfolio = () => {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="w-32 px-4 py-2">
+                                    <td className="w-32 px-2 py-1 sm:px-4 sm:py-2">  {/* Smaller padding on mobile */}
                                       <PriceSparkline 
                                         spotPair={aggregatedTrade['Spot Pair']} 
                                         width={120} 
@@ -1428,12 +1428,12 @@ const CryptoPortfolio = () => {
                                     <td className="px-4 py-2">{formatNumber(trade['Buy Quantity'], 6)}</td>
                                     <td className="px-4 py-2">${formatNumber(trade['Buy Value'])}</td>
                                     <td className="px-4 py-2">
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
                                         <Button
                                           onClick={() => updateSinglePrice(trade)}
                                           variant="outline"
                                           size="sm"
-                                          className="w-24"
+                                          className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
                                         >
                                           Refresh
                                         </Button>
@@ -1444,7 +1444,7 @@ const CryptoPortfolio = () => {
                                           }}
                                           variant="outline"
                                           size="sm"
-                                          className="w-24"
+                                          className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
                                         >
                                           Sell
                                         </Button>
