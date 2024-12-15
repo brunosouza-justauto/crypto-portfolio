@@ -176,15 +176,13 @@ const CryptoPortfolio = () => {
         .select('*')
         .order('buy_date', { ascending: false });
 
-      console.log('Fetched trades:', trades);
-
       if (error) {
         console.error('Supabase fetch error:', error);
         throw error;
       }
 
       if (!trades || trades.length === 0) {
-        console.log('No trades found in database');
+        console.error('No trades found in database');
         return;
       }
 
@@ -320,14 +318,6 @@ const CryptoPortfolio = () => {
           };
         }
       });
-
-      console.log('All Transformed Trades:', transformedTrades.map(t => ({
-        symbol: t['Spot Pair'],
-        leftBalance: t['Exit Quantity'],
-        buyQty: t['Buy Quantity'],
-        exitQty: t['Exit Quantity'],
-        isOpen: t['Exit Quantity'] > 0
-      })));
 
       // Sort trades: open positions first (sorted by buy date), then closed positions (sorted by exit date)
       const sortedTrades = transformedTrades.sort((a, b) => {
@@ -583,10 +573,6 @@ const CryptoPortfolio = () => {
       setTimeout(() => setUpdateProgress(0), 1000);
     }
   }, [trades, fetchCryptoPrice, sortTradesByPerformance]);
-
-  useEffect(() => {
-    console.log('Trades state updated:', trades);
-  }, [trades]);
 
   const handleSell = async (sellPrice: number, sellQuantity: number) => {
     if (!selectedTrade) return;
@@ -940,6 +926,53 @@ const CryptoPortfolio = () => {
                   )}
                 </div>
 
+                <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-4">
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Total Paid Value</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">
+                        ${formatNumber(performance.totalValuePaid)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Current Value</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">
+                        ${formatNumber(performance.totalCurrentValue)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Open P/L</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className={`text-lg font-bold sm:text-xl ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${formatNumber(performance.openTradesPL)}
+                      </p>
+                      <p className={`text-xs sm:text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatNumber((performance.openTradesPL / performance.totalValuePaid) * 100, 2)}%
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Open Trades</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className="text-lg font-bold sm:text-xl">{performance.openTrades}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <div className="block sm:hidden"> {/* Mobile Card View */}
                   {Object.entries(
                     trades
@@ -1188,53 +1221,6 @@ const CryptoPortfolio = () => {
                 </div>
 
                 <div className="hidden sm:block"> {/* Desktop Table View */}
-                  <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-4">
-                    <Card className="p-2 sm:p-3">
-                      <CardHeader className="p-2 sm:p-4">
-                        <CardTitle className="text-sm sm:text-base">Total Paid Value</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-2 pt-0 sm:p-4">
-                        <p className="text-lg font-bold sm:text-xl">
-                          ${formatNumber(performance.totalValuePaid)}
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="p-2 sm:p-3">
-                      <CardHeader className="p-2 sm:p-4">
-                        <CardTitle className="text-sm sm:text-base">Current Value</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-2 pt-0 sm:p-4">
-                        <p className="text-lg font-bold sm:text-xl">
-                          ${formatNumber(performance.totalCurrentValue)}
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="p-2 sm:p-3">
-                      <CardHeader className="p-2 sm:p-4">
-                        <CardTitle className="text-sm sm:text-base">Open P/L</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-2 pt-0 sm:p-4">
-                        <p className={`text-lg font-bold sm:text-xl ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${formatNumber(performance.openTradesPL)}
-                        </p>
-                        <p className={`text-xs sm:text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatNumber((performance.openTradesPL / performance.totalValuePaid) * 100, 2)}%
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="p-2 sm:p-3">
-                      <CardHeader className="p-2 sm:p-4">
-                        <CardTitle className="text-sm sm:text-base">Open Trades</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-2 pt-0 sm:p-4">
-                        <p className="text-lg font-bold sm:text-xl">{performance.openTrades}</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
                   <div className="-mx-1 overflow-x-auto sm:mx-0">  {/* Negative margin on mobile to counter container padding */}
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
@@ -1707,24 +1693,24 @@ const CryptoPortfolio = () => {
 
             {activeTab === 'closed-trades' && trades.length > 0 && (
               <div>
-                <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Closed P/L</CardTitle>
+                <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-2">
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Closed P/L</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className={`text-2xl font-bold ${performance.closedTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className={`text-lg font-bold sm:text-xl ${performance.closedTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${formatNumber(performance.closedTradesPL)}
                       </p>
                     </CardContent>
                   </Card>
                   
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Win Rate</CardTitle>
+                  <Card className="p-2 sm:p-3">
+                    <CardHeader className="p-2 sm:p-4">
+                      <CardTitle className="text-sm sm:text-base">Win Rate</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className={`text-2xl font-bold ${
+                    <CardContent className="p-2 pt-0 sm:p-4">
+                      <p className={`text-lg font-bold sm:text-xl ${
                         performance.winRate > 50 ? 'text-green-600' : 
                         performance.winRate === 50 ? 'text-orange-500' : 
                         'text-red-600'
@@ -1735,7 +1721,86 @@ const CryptoPortfolio = () => {
                     </CardContent>
                   </Card>
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Mobile Card View */}
+                <div className="block sm:hidden">
+                  <div className="space-y-2">
+                    {trades
+                      .filter(trade => trade['Exit Quantity'] > 0)
+                      .sort((a, b) => new Date(b['Exit Date'] || 0).getTime() - new Date(a['Exit Date'] || 0).getTime())
+                      .map((trade, index) => (
+                        <Card key={index} className="p-2">
+                          {/* Top Row */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-medium">{trade['Spot Pair']}</span>
+                              <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                                trade['market_type'] === 'perp' 
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : trade['market_type'] === 'pre-market'
+                                    ? 'bg-red-100 text-red-800'
+                                    : trade['market_type'] === 'sol'
+                                      ? 'bg-gradient-to-r from-[#00FFA3] to-[#DC1FFF] text-white'
+                                      : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {trade['market_type']}
+                              </span>
+                            </div>
+                            <span className={`text-lg font-bold ${(trade['%'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatNumber(trade['%'], 2, true)}%
+                            </span>
+                          </div>
+
+                          {/* Trade Details */}
+                          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                            <div>
+                              <p className="text-gray-500">Buy Date</p>
+                              <p>{formatDate(trade['Buy Date'])}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Exit Date</p>
+                              <p>{formatDate(trade['Exit Date'])}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Buy Price</p>
+                              <p>${formatNumber(trade['Buy Price'])}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Exit Price</p>
+                              <p>${formatNumber(trade['Exit Price'])}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Quantity</p>
+                              <p>{formatNumber(trade['Buy Quantity'], 6)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">P/L</p>
+                              <p className={`font-medium ${(trade['Profit/Loss $'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                ${formatNumber(trade['Profit/Loss $'])}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Bottom Row */}
+                          <div className="flex items-center justify-between pt-2 mt-2 border-t">
+                            <span className="text-sm text-gray-500">
+                              {calculateTimeHolding(trade['Buy Date'], trade['Exit Date'])}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              trade['Win/Loss'] === 'WIN' 
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {trade['Win/Loss']}
+                            </span>
+                          </div>
+                        </Card>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden overflow-x-auto sm:block">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
                       <tr>
