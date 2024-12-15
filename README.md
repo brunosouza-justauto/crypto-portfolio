@@ -1,8 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crypto Portfolio Tracker
+
+A Next.js application for tracking and managing cryptocurrency trades across multiple exchanges with real-time price updates and performance analytics.
+
+## Features
+
+- **Trade Management**
+  - Add and track crypto trades across different exchanges
+  - Support for spot and perpetual futures markets
+  - Partial sell functionality with trade history
+  - Import trades from Excel files
+
+- **Real-time Price Updates**
+  - Integration with multiple exchange APIs (Bybit, KuCoin, Coinex, Coinbase, MEXC)
+  - Price sparklines for visual trend analysis
+  - Automatic price refresh functionality
+
+- **Performance Analytics**
+  - Portfolio overview with total value and P&L calculations
+  - Win rate and trade performance metrics
+  - Interactive charts for:
+    - Closed trades performance
+    - Open positions tracking
+    - Monthly performance analysis
+    - Win rate over time
+    - Hold time vs. profit analysis
+
+- **Data Storage**
+  - Supabase integration for secure data persistence
+  - Historical price tracking
+  - Trade history with detailed metrics
+
+## Tech Stack
+
+- **Frontend**: Next.js 15.1.0 with TypeScript
+- **UI Components**: 
+  - Tailwind CSS for styling
+  - Radix UI for accessible components
+  - Recharts for data visualization
+- **Backend**: 
+  - Next.js API routes
+  - Supabase for database
+- **APIs**: Multiple cryptocurrency exchange integrations
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
 
 ```bash
 npm run dev
