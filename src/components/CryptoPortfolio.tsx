@@ -126,6 +126,7 @@ const CryptoPortfolio = () => {
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [selectedNotes, setSelectedNotes] = useState('');
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
+  const [isAddTradeModalOpen, setIsAddTradeModalOpen] = useState(false);
 
   const sortTradesByPerformance = useCallback((trades: Trade[]) => {
     const sortedTrades = trades.sort((a, b) => {
@@ -854,6 +855,12 @@ const CryptoPortfolio = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Crypto Portfolio Tracker</h1>
           <div className="flex gap-2">
+            <button
+              onClick={() => setIsAddTradeModalOpen(true)}
+              className="px-4 py-2 font-bold text-white bg-blue-500 rounded cursor-pointer hover:bg-blue-700"
+            >
+              Add New Trade
+            </button>
             <input
               type="file"
               accept=".xlsx"
@@ -872,11 +879,19 @@ const CryptoPortfolio = () => {
             </label>
           </div>
         </div>
-        
-        <div className="mb-6 border rounded-lg shadow-sm bg-card text-card-foreground">
-          <h2 className="pt-3 pl-4 mb-2 text-xl font-semibold">Add New Trade</h2>
-          <AddTradeForm onTradeAdded={loadData} />
-        </div>
+
+        {/* Add the modal */}
+        <Dialog open={isAddTradeModalOpen} onOpenChange={setIsAddTradeModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Trade</DialogTitle>
+            </DialogHeader>
+            <AddTradeForm onTradeAdded={() => {
+              setIsAddTradeModalOpen(false);
+              loadData();
+            }} />
+          </DialogContent>
+        </Dialog>
 
         <div className="mb-6">
           <div className="border-b border-gray-200">
@@ -1500,6 +1515,12 @@ const CryptoPortfolio = () => {
                     <tbody>
                       {trades
                         .filter(trade => trade['Exit Quantity'] > 0)
+                        .sort((a, b) => {
+                          // Sort by exit date in descending order (most recent first)
+                          const dateA = new Date(a['Exit Date'] || 0).getTime();
+                          const dateB = new Date(b['Exit Date'] || 0).getTime();
+                          return dateB - dateA;
+                        })
                         .map((trade, index) => (
                           <tr key={index} className="border-b">
                             <td className="px-4 py-2">{trade['Spot Pair']}</td>

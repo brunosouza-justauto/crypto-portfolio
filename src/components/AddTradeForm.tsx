@@ -218,8 +218,9 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-2 pl-4 mb-2 space-y-2 rounded-lg">
-      <div className="grid grid-cols-1 gap-2 mr-2 md:grid-cols-8">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        {/* Ticker */}
         <div>
           <label className="block text-xs font-medium text-black">Ticker</label>
           <input
@@ -231,7 +232,8 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
             placeholder="BTC"
           />
         </div>
-        
+
+        {/* Token Address */}
         <div>
           <label className="block text-xs font-medium text-black">Token Address</label>
           <input
@@ -243,6 +245,7 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
           />
         </div>
 
+        {/* Buy Date */}
         <div>
           <label className="block text-xs font-medium text-black">Buy Date</label>
           <input
@@ -254,6 +257,7 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
           />
         </div>
 
+        {/* Buy Price */}
         <div>
           <label className="block text-xs font-medium text-black">Buy Price</label>
           <input
@@ -267,6 +271,7 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
           />
         </div>
 
+        {/* Buy Quantity */}
         <div>
           <label className="block text-xs font-medium text-black">Buy Quantity</label>
           <input
@@ -280,6 +285,7 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
           />
         </div>
 
+        {/* Market Type */}
         <div>
           <label className="block text-xs font-medium text-black">Market Type</label>
           <select
@@ -295,42 +301,34 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
           </select>
         </div>
 
-        <div className="relative flex flex-col" ref={exchangeRef}>
+        {/* Exchange */}
+        <div className="relative" ref={exchangeRef}>
           <label className="block text-xs font-medium text-black">Exchange</label>
-          <div className="flex mt-1 space-x-2">
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                required
-                value={formData.exchange}
-                onChange={(e) => handleExchangeInput(e.target.value)}
-                onFocus={() => setShowExchangeDropdown(true)}
-                className="block w-full h-10 px-3 text-sm text-black border border-gray-300 rounded-md shadow-sm placeholder:text-black focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Binance"
-              />
-              {showExchangeDropdown && filteredExchanges.length > 0 && (
-                <ul className="absolute z-10 w-full mt-1 overflow-auto bg-white border border-gray-300 rounded-md shadow-lg max-h-48">
-                  {filteredExchanges.map((exchange) => (
-                    <li
-                      key={exchange}
-                      className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleExchangeSelect(exchange)}
-                    >
-                      {exchange}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <button
-              type="submit"
-              className="h-10 px-4 text-sm font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
-            >
-              Add
-            </button>
-          </div>
+          <input
+            type="text"
+            required
+            value={formData.exchange}
+            onChange={(e) => handleExchangeInput(e.target.value)}
+            onFocus={() => setShowExchangeDropdown(true)}
+            className="block w-full h-10 px-3 mt-1 text-sm text-black border border-gray-300 rounded-md shadow-sm placeholder:text-black focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Binance"
+          />
+          {showExchangeDropdown && filteredExchanges.length > 0 && (
+            <ul className="absolute z-10 w-full mt-1 overflow-auto bg-white border border-gray-300 rounded-md shadow-lg max-h-48">
+              {filteredExchanges.map((exchange) => (
+                <li
+                  key={exchange}
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleExchangeSelect(exchange)}
+                >
+                  {exchange}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
+        {/* Notes */}
         <div>
           <label className="block text-xs font-medium text-black">Notes</label>
           <input
@@ -340,6 +338,16 @@ export function AddTradeForm({ onTradeAdded }: AddTradeFormProps) {
             className="block w-full h-10 px-3 mt-1 text-sm text-black border border-gray-300 rounded-md shadow-sm placeholder:text-black focus:border-blue-500 focus:ring-blue-500"
             placeholder="Optional - Add notes"
           />
+        </div>
+
+        {/* Submit Button */}
+        <div>
+          <button
+            type="submit"
+            className="w-full h-10 px-4 text-sm font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+          >
+            Add
+          </button>
         </div>
       </div>
     </form>

@@ -16,13 +16,16 @@ export async function POST(request: Request) {
       previousSells 
     } = await request.json();
 
-    // Start a Supabase transaction
+    // Add exchange and buyPrice to uniquely identify the trade
     const { error: fetchError } = await supabaseServer
       .from('trades')
       .select('*')
       .match({
         spot_pair: spotPair,
-        buy_date: buyDate
+        buy_date: buyDate,
+        exchange: exchange,
+        buy_price: buyPrice,
+        buy_quantity: buyQuantity
       })
       .single();
 
@@ -33,24 +36,28 @@ export async function POST(request: Request) {
     // Calculate remaining quantity
     const remainingQuantity = buyQuantity - exitQuantity;
 
+    // Rest of the update logic should use the same match criteria
+    const matchCriteria = {
+      spot_pair: spotPair,
+      buy_date: buyDate,
+      exchange: exchange,
+      buy_price: buyPrice,
+      buy_quantity: buyQuantity
+    };
+
     if (remainingQuantity > 0) {
-      // Update original trade with reduced quantity and previous sells
       const { error: updateError } = await supabaseServer
         .from('trades')
         .update({
           buy_quantity: remainingQuantity,
           previous_sells: previousSells
         })
-        .match({
-          spot_pair: spotPair,
-          buy_date: buyDate
-        });
+        .match(matchCriteria);
 
       if (updateError) {
         throw updateError;
       }
     } else {
-      // If selling entire position, update the original trade with exit details
       const { error: updateError } = await supabaseServer
         .from('trades')
         .update({
@@ -59,10 +66,7 @@ export async function POST(request: Request) {
           exit_date: exitDate,
           previous_sells: previousSells
         })
-        .match({
-          spot_pair: spotPair,
-          buy_date: buyDate
-        });
+        .match(matchCriteria);
 
       if (updateError) {
         throw updateError;
