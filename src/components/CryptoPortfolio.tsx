@@ -940,524 +940,767 @@ const CryptoPortfolio = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-4">
-                  <Card className="p-2 sm:p-3">
-                    <CardHeader className="p-2 sm:p-4">
-                      <CardTitle className="text-sm sm:text-base">Total Paid Value</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 sm:p-4">
-                      <p className="text-lg font-bold sm:text-xl">
-                        ${formatNumber(performance.totalValuePaid)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="p-2 sm:p-3">
-                    <CardHeader className="p-2 sm:p-4">
-                      <CardTitle className="text-sm sm:text-base">Current Value</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 sm:p-4">
-                      <p className="text-lg font-bold sm:text-xl">
-                        ${formatNumber(performance.totalCurrentValue)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="p-2 sm:p-3">
-                    <CardHeader className="p-2 sm:p-4">
-                      <CardTitle className="text-sm sm:text-base">Open P/L</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 sm:p-4">
-                      <p className={`text-lg font-bold sm:text-xl ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ${formatNumber(performance.openTradesPL)}
-                      </p>
-                      <p className={`text-xs sm:text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatNumber((performance.openTradesPL / performance.totalValuePaid) * 100, 2)}%
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="p-2 sm:p-3">
-                    <CardHeader className="p-2 sm:p-4">
-                      <CardTitle className="text-sm sm:text-base">Open Trades</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-2 pt-0 sm:p-4">
-                      <p className="text-lg font-bold sm:text-xl">{performance.openTrades}</p>
-                    </CardContent>
-                  </Card>
-                </div>
+                <div className="block sm:hidden"> {/* Mobile Card View */}
+                  {Object.entries(
+                    trades
+                      .filter(trade => !trade['Exit Quantity'])
+                      .reduce((acc, trade) => {
+                        const baseExchange = getBaseExchangeName(trade['Exchange']);
+                        if (!acc[baseExchange]) {
+                          acc[baseExchange] = {
+                            pairs: {},
+                            totalBuyValue: 0,
+                            totalCurrentValue: 0
+                          };
+                        }
+                        
+                        const spotPair = trade['Spot Pair'];
+                        if (!acc[baseExchange].pairs[spotPair]) {
+                          acc[baseExchange].pairs[spotPair] = {
+                            ...trade,
+                            trades: [trade],
+                            'Buy Value': trade['Buy Value'],
+                            'Buy Quantity': trade['Buy Quantity'],
+                            'Current Position Value': trade['Current Position Value'] || 0,
+                            'Performance $': (trade['Current Position Value'] || 0) - trade['Buy Value'],
+                            'Performance %': ((trade['Current Position Value'] || 0) - trade['Buy Value']) / trade['Buy Value'] * 100,
+                            'Todays Price': trade['Todays Price'],
+                            'Buy Price': trade['Buy Price'],
+                          };
+                        } else {
+                          const existing = acc[baseExchange].pairs[spotPair];
+                          existing.trades.push(trade);
+                          existing['Buy Value'] += trade['Buy Value'];
+                          existing['Buy Quantity'] += trade['Buy Quantity'];
+                          existing['Current Position Value'] += trade['Current Position Value'] || 0;
+                          existing['Performance $'] = existing['Current Position Value'] - existing['Buy Value'];
+                          existing['Buy Price'] = existing['Buy Value'] / existing['Buy Quantity'];
+                          existing['Performance %'] = (existing['Performance $'] / existing['Buy Value']) * 100;
+                          existing['Todays Price'] = trade['Todays Price'];
+                        }
 
-                <div className="-mx-1 overflow-x-auto sm:mx-0">  {/* Negative margin on mobile to counter container padding */}
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-2 text-left">Ticker</th>
-                        <th className="px-4 py-2 text-left">7D Chart</th>
-                        <th className="px-4 py-2 text-left">Buy Date</th>
-                        <th className="px-4 py-2 text-left">Current Price</th>
-                        <th className="px-4 py-2 text-left">Current Position Value</th>
-                        <th className="px-4 py-2 text-left">Performance $</th>
-                        <th className="px-4 py-2 text-left">Performance %</th>
-                        <th className="px-4 py-2 text-left">Buy Price</th>
-                        <th className="px-4 py-2 text-left">Quantity</th>
-                        <th className="px-4 py-2 text-left">Value</th>
-                        <th className="px-4 py-2 text-left">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(
-                        trades
-                          .filter(trade => !trade['Exit Quantity'])
-                          .reduce((acc, trade) => {
-                            const baseExchange = getBaseExchangeName(trade['Exchange']);
-                            if (!acc[baseExchange]) {
-                              acc[baseExchange] = {
-                                pairs: {},
-                                totalBuyValue: 0,
-                                totalCurrentValue: 0
-                              };
-                            }
-                            
-                            const spotPair = trade['Spot Pair'];
-                            if (!acc[baseExchange].pairs[spotPair]) {
-                              acc[baseExchange].pairs[spotPair] = {
-                                ...trade,
-                                trades: [trade],
-                                'Buy Value': trade['Buy Value'],
-                                'Buy Quantity': trade['Buy Quantity'],
-                                'Current Position Value': trade['Current Position Value'] || 0,
-                                'Performance $': (trade['Current Position Value'] || 0) - trade['Buy Value'],
-                                'Performance %': ((trade['Current Position Value'] || 0) - trade['Buy Value']) / trade['Buy Value'] * 100,
-                                'Todays Price': trade['Todays Price'],
-                                'Buy Price': trade['Buy Price'],
-                              };
-                            } else {
-                              const existing = acc[baseExchange].pairs[spotPair];
-                              existing.trades.push(trade);
-                              existing['Buy Value'] += trade['Buy Value'];
-                              existing['Buy Quantity'] += trade['Buy Quantity'];
-                              existing['Current Position Value'] += trade['Current Position Value'] || 0;
-                              existing['Performance $'] = existing['Current Position Value'] - existing['Buy Value'];
-                              existing['Buy Price'] = existing['Buy Value'] / existing['Buy Quantity'];
-                              existing['Performance %'] = (existing['Performance $'] / existing['Buy Value']) * 100;
-                              existing['Todays Price'] = trade['Todays Price'];
-                            }
+                        // Update exchange totals
+                        acc[baseExchange].totalBuyValue += trade['Buy Value'];
+                        acc[baseExchange].totalCurrentValue += trade['Current Position Value'] || 0;
+                        
+                        return acc;
+                      }, {} as Record<string, {
+                        pairs: Record<string, Trade & { trades: Trade[] }>,
+                        totalBuyValue: number,
+                        totalCurrentValue: number
+                      }>)
+                  ).map(([exchange, { pairs, totalBuyValue, totalCurrentValue }]) => (
+                    <div key={exchange} className="mb-4">
+                      {/* Exchange Header */}
+                      <div className="px-2 py-1.5 mb-2 text-sm font-medium bg-slate-100 rounded-md">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold">{exchange}</span>
+                          <span className={`${totalCurrentValue - totalBuyValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatNumber(((totalCurrentValue - totalBuyValue) / totalBuyValue) * 100, 2)}%
+                          </span>
+                        </div>
+                      </div>
 
-                            // Update exchange totals
-                            acc[baseExchange].totalBuyValue += trade['Buy Value'];
-                            acc[baseExchange].totalCurrentValue += trade['Current Position Value'] || 0;
-                            
-                            return acc;
-                          }, {} as Record<string, {
-                            pairs: Record<string, Trade & { trades: Trade[] }>,
-                            totalBuyValue: number,
-                            totalCurrentValue: number
-                          }>)
-                      ).map(([exchange, { pairs, totalBuyValue, totalCurrentValue }]) => (
-                        <React.Fragment key={exchange}>
-                          <tr className="border-t-2 border-b-2 border-gray-300 shadow-sm bg-slate-200">
-                            <td className="px-4 py-3" colSpan={2}>
-                              <div className="flex items-center gap-4">
-                                <span className="text-lg font-bold">{exchange}</span>
-                                <span className="text-sm text-gray-600">
-                                  Buy Value: ${formatNumber(totalBuyValue)} → Current Value: ${formatNumber(totalCurrentValue)} 
-                                  <span className={`ml-2 ${totalCurrentValue - totalBuyValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    ({formatNumber(((totalCurrentValue - totalBuyValue) / totalBuyValue) * 100, 2)}%)
+                      {/* Position Cards */}
+                      <div className="space-y-2">
+                        {Object.entries(pairs)
+                          .sort(([, a], [, b]) => (b['Performance %'] || 0) - (a['Performance %'] || 0))
+                          .map(([spotPair, aggregatedTrade]) => (
+                            <Card key={spotPair} className="p-2">
+                              {/* Top Row */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-medium">{spotPair}</span>
+                                  <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full ${
+                                    aggregatedTrade['market_type'] === 'perp' 
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : aggregatedTrade['market_type'] === 'pre-market'
+                                        ? 'bg-red-100 text-red-800'
+                                        : aggregatedTrade['market_type'] === 'sol'
+                                          ? 'bg-gradient-to-r from-[#00FFA3] to-[#DC1FFF] text-white'
+                                          : 'bg-blue-100 text-blue-800'
+                                  }`}>
+                                    {aggregatedTrade['market_type']}
                                   </span>
+                                  {aggregatedTrade.notes && (
+                                    <TooltipUI>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedNotes(aggregatedTrade.notes || '');
+                                            setShowNotesDialog(true);
+                                          }}
+                                        >
+                                          <Info className="w-4 h-4" />
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>{aggregatedTrade.notes}</p>
+                                      </TooltipContent>
+                                    </TooltipUI>
+                                  )}
+                                </div>
+                                <span className={`text-lg font-bold ${(aggregatedTrade['Performance %'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {formatNumber(aggregatedTrade['Performance %'], 2, true)}%
                                 </span>
                               </div>
-                            </td>
-                            <td colSpan={9}></td>
-                          </tr>
-                          {Object.entries(pairs)
-                            .sort(([, a], [, b]) => (b['Performance %'] || 0) - (a['Performance %'] || 0))
-                            .map(([spotPair, aggregatedTrade]) => (
-                              <React.Fragment key={spotPair}>
-                                {aggregatedTrade.trades.length > 1 && (
-                                  <tr className="font-semibold bg-gray-200 border-b">
-                                    <td className="px-4 py-2">
-                                      <div className="flex items-center gap-2">
-                                        {spotPair}
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                          aggregatedTrade.trades[0]['market_type'] === 'perp' 
-                                            ? 'bg-purple-100 text-purple-800'
-                                            : aggregatedTrade.trades[0]['market_type'] === 'pre-market'
-                                              ? 'bg-red-100 text-red-800'
-                                              : aggregatedTrade.trades[0]['market_type'] === 'sol'
-                                                ? 'bg-gradient-to-r from-[#00FFA3] to-[#DC1FFF] text-white'
-                                                : 'bg-blue-100 text-blue-800'
-                                        }`}>
-                                          {aggregatedTrade.trades[0]['market_type']}
-                                        </span>
-                                        {aggregatedTrade.trades[0].notes && (
-                                          <span className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">
-                                            {aggregatedTrade.trades[0].notes}
-                                          </span>
-                                        )}
-                                        {(() => {
-                                          const performance = aggregatedTrade['Performance %'] || 0;
-                                          const previousSells = aggregatedTrade.trades.reduce((acc, trade) => {
-                                            return acc.concat(trade['Previous Sells'] || []);
-                                          }, [] as { percentage: number; quantity: number; price: number; date: string; }[]);
-                                          
-                                          // Calculate total sold percentage
-                                          const totalSoldPercentage = previousSells.reduce((total, sell) => 
-                                            total + sell.percentage, 0);
-                                          
-                                          // Check if we've already sold at specific thresholds
-                                          const hasSold30 = previousSells.some(sell => sell.percentage === 30);
-                                          const hasSold20 = previousSells.some(sell => sell.percentage === 20);
-                                          const hasSold10 = previousSells.some(sell => sell.percentage === 10);
-                                          
-                                          // Show MARKET badge if we've already sold 30% or more
-                                          if (hasSold30 || totalSoldPercentage >= 30) {
-                                            return (
-                                              <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-orange-600">
-                                                MARKET
-                                              </span>
-                                            );
-                                          }
-                                          
-                                          // Modified logic for showing sell badges
-                                          if (hasSold20) {
-                                            // After selling 20%, only show 30% badge when performance >= 100%
-                                            if (performance >= 100) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
-                                                  SELL 30%
-                                                </span>
-                                              );
-                                            }
-                                          } else if (hasSold10) {
-                                            // After selling 10%, only show 20% badge when performance >= 50%
-                                            if (performance >= 50) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
-                                                  SELL 20%
-                                                </span>
-                                              );
-                                            }
-                                          } else {
-                                            // No sells yet, show first appropriate badge
-                                            if (performance >= 100) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
-                                                  SELL 30%
-                                                </span>
-                                              );
-                                            } else if (performance >= 50) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
-                                                  SELL 20%
-                                                </span>
-                                              );
-                                            } else if (performance >= 25) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-400">
-                                                  SELL 10%
-                                                </span>
-                                              );
-                                            }
-                                          }
-                                          
-                                          return null;
-                                        })()}
-                                        {(() => {
-                                          const allPreviousSells = aggregatedTrade.trades.reduce((acc, trade) => {
-                                            return acc.concat(trade['Previous Sells'] || []);
-                                          }, [] as { percentage: number; quantity: number; price: number; date: string; }[]);
 
-                                          if (allPreviousSells.length > 0) {
-                                            return (
-                                              <TooltipUI delayDuration={0}>
-                                                <TooltipTrigger asChild>
-                                                  <button
-                                                    className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                  >
-                                                    <div className="flex items-center gap-1">
-                                                      <History className="w-4 h-4" />
-                                                      <span className="text-xs font-medium">
-                                                        {allPreviousSells.length}
-                                                      </span>
-                                                    </div>
-                                                  </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent 
-                                                  side="right" 
-                                                  className="max-w-sm p-3 text-sm whitespace-pre-line bg-white border border-gray-100 rounded-lg shadow-lg"
-                                                >
-                                                  <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                                                      <History className="w-4 h-4 text-gray-500" />
-                                                      <p className="font-medium text-gray-900">Previous Sells</p>
-                                                    </div>
-                                                    <div className="space-y-1.5 text-gray-600">
-                                                      {allPreviousSells.map((sell, index) => (
-                                                        <div key={index} className="flex items-center justify-between">
-                                                          <span>{formatDate(sell.date)}</span>
-                                                          <span className="font-medium">
-                                                            {formatNumber(sell.quantity)} @ ${formatNumber(sell.price)}
-                                                            <span className="ml-1 text-xs text-gray-500">
-                                                              ({sell.percentage}%)
-                                                            </span>
-                                                          </span>
-                                                        </div>
-                                                      ))}
-                                                    </div>
-                                                  </div>
-                                                </TooltipContent>
-                                              </TooltipUI>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                      </div>
-                                    </td>
-                                    <td></td>
-                                    <td className="px-4 py-2">
-                                      <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 rounded-full">
-                                        {aggregatedTrade.trades.length} positions
-                                      </span>
-                                    </td>
-                                    <td className="px-4 py-2">${formatNumber(aggregatedTrade['Todays Price'])}</td>
-                                    <td className="px-4 py-2">${formatNumber(aggregatedTrade['Current Position Value'])}</td>
-                                    <td className={`px-4 py-2 ${(aggregatedTrade['Performance $'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      ${formatNumber(aggregatedTrade['Performance $'])}
-                                    </td>
-                                    <td className={`px-4 py-2 ${(aggregatedTrade['Performance %'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      {formatNumber(aggregatedTrade['Performance %'], 5, true)}%
-                                    </td>
-                                    <td className="px-4 py-2">${formatNumber(aggregatedTrade['Buy Price'])}</td>
-                                    <td className="px-4 py-2">{formatNumber(aggregatedTrade['Buy Quantity'], 6)}</td>
-                                    <td className="px-4 py-2">${formatNumber(aggregatedTrade['Buy Value'])}</td>
-                                    <td className="px-4 py-2">
-                                      <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
-                                        <Button
-                                          onClick={() => updateSinglePrice(aggregatedTrade)}
-                                          variant="outline"
-                                          size="sm"
-                                          className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
+                              {/* Action Badges Row */}
+                              <div className="flex items-center justify-between mt-1">
+                                <div className="flex items-center gap-1">
+                                  {/* Sell Action Badge */}
+                                  {(() => {
+                                    const performance = aggregatedTrade['Performance %'] || 0;
+                                    const previousSells = aggregatedTrade.trades.reduce((acc, trade) => {
+                                      return acc.concat(trade['Previous Sells'] || []);
+                                    }, [] as { percentage: number; quantity: number; price: number; date: string; }[]);
+                                    
+                                    // Check if we've already sold at specific thresholds
+                                    const hasSold30 = previousSells.some(sell => sell.percentage === 30);
+                                    const hasSold20 = previousSells.some(sell => sell.percentage === 20);
+                                    const hasSold10 = previousSells.some(sell => sell.percentage === 10);
+                                    
+                                    // Show MARKET badge only if we've specifically sold 30%
+                                    if (hasSold30) {
+                                      return (
+                                        <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-orange-600">
+                                          MARKET
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    // Modified logic for showing sell badges
+                                    if (hasSold20) {
+                                      // After selling 20%, only show 30% badge when performance >= 100%
+                                      if (performance >= 100) {
+                                        return (
+                                          <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                            SELL 30%
+                                          </span>
+                                        );
+                                      }
+                                    } else if (hasSold10) {
+                                      // After selling 10%, only show 20% badge when performance >= 50%
+                                      if (performance >= 50) {
+                                        return (
+                                          <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                            SELL 20%
+                                          </span>
+                                        );
+                                      }
+                                    } else {
+                                      // No sells yet, show first appropriate badge
+                                      if (performance >= 100) {
+                                        return (
+                                          <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                            SELL 30%
+                                          </span>
+                                        );
+                                      } else if (performance >= 50) {
+                                        return (
+                                          <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                            SELL 20%
+                                          </span>
+                                        );
+                                      } else if (performance >= 25) {
+                                        return (
+                                          <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-400">
+                                            SELL 10%
+                                          </span>
+                                        );
+                                      }
+                                    }
+                                    
+                                    return null;
+                                  })()}
+                                  {/* Previous Sells History */}
+                                  {aggregatedTrade['Previous Sells'] && aggregatedTrade['Previous Sells'].length > 0 && (
+                                    <TooltipUI delayDuration={0}>
+                                      <TooltipTrigger asChild>
+                                        <button
+                                          className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                          onClick={(e) => e.stopPropagation()}
                                         >
-                                          Refresh
-                                        </Button>
-                                        <Button
-                                          onClick={() => {
-                                            setSelectedTrade(aggregatedTrade.trades[0]);
-                                            setIsSellModalOpen(true);
-                                          }}
-                                          variant="outline"
-                                          size="sm"
-                                          className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
-                                        >
-                                          Sell
-                                        </Button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                                
-                                {aggregatedTrade.trades.map((trade, index) => (
-                                  <tr 
-                                    key={index} 
-                                    className={`border-b hover:bg-gray-100 ${
-                                      aggregatedTrade.trades.length > 1 ? 'bg-gray-50' : 'bg-slate-25'
-                                    }`}
+                                          <div className="flex items-center gap-1">
+                                            <History className="w-4 h-4" />
+                                            <span className="text-xs font-medium">
+                                              {aggregatedTrade['Previous Sells'].length}
+                                            </span>
+                                          </div>
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent 
+                                        side="right" 
+                                        className="max-w-sm p-3 text-sm whitespace-pre-line bg-white border border-gray-100 rounded-lg shadow-lg"
+                                      >
+                                        <div className="space-y-2">
+                                          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                            <History className="w-4 h-4 text-gray-500" />
+                                            <p className="font-medium text-gray-900">Previous Sells</p>
+                                          </div>
+                                          <div className="space-y-1.5 text-gray-600">
+                                            {aggregatedTrade['Previous Sells'].map((sell, index) => (
+                                              <div key={index} className="flex items-center justify-between">
+                                                <span>{formatDate(sell.date)}</span>
+                                                <span className="font-medium">
+                                                  {formatNumber(sell.quantity)} @ ${formatNumber(sell.price)}
+                                                  <span className="ml-1 text-xs text-gray-500">
+                                                    ({sell.percentage}%)
+                                                  </span>
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </TooltipContent>
+                                    </TooltipUI>
+                                  )}
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    onClick={() => updateSinglePrice(aggregatedTrade)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="px-2 text-xs h-7"
                                   >
-                                    <td className="px-4 py-2">
-                                      <div className="flex items-center gap-2">
-                                        {aggregatedTrade.trades.length === 1 ? spotPair : '↳'}
-                                        {aggregatedTrade.trades.length === 1 && (
+                                    Refresh
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setSelectedTrade(aggregatedTrade);
+                                      setIsSellModalOpen(true);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    className="px-2 text-xs h-7"
+                                  >
+                                    Sell
+                                  </Button>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden sm:block"> {/* Desktop Table View */}
+                  <div className="grid grid-cols-2 gap-2 mb-4 sm:gap-4 sm:mb-6 md:grid-cols-4">
+                    <Card className="p-2 sm:p-3">
+                      <CardHeader className="p-2 sm:p-4">
+                        <CardTitle className="text-sm sm:text-base">Total Paid Value</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-2 pt-0 sm:p-4">
+                        <p className="text-lg font-bold sm:text-xl">
+                          ${formatNumber(performance.totalValuePaid)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="p-2 sm:p-3">
+                      <CardHeader className="p-2 sm:p-4">
+                        <CardTitle className="text-sm sm:text-base">Current Value</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-2 pt-0 sm:p-4">
+                        <p className="text-lg font-bold sm:text-xl">
+                          ${formatNumber(performance.totalCurrentValue)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="p-2 sm:p-3">
+                      <CardHeader className="p-2 sm:p-4">
+                        <CardTitle className="text-sm sm:text-base">Open P/L</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-2 pt-0 sm:p-4">
+                        <p className={`text-lg font-bold sm:text-xl ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${formatNumber(performance.openTradesPL)}
+                        </p>
+                        <p className={`text-xs sm:text-sm ${performance.openTradesPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatNumber((performance.openTradesPL / performance.totalValuePaid) * 100, 2)}%
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="p-2 sm:p-3">
+                      <CardHeader className="p-2 sm:p-4">
+                        <CardTitle className="text-sm sm:text-base">Open Trades</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-2 pt-0 sm:p-4">
+                        <p className="text-lg font-bold sm:text-xl">{performance.openTrades}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="-mx-1 overflow-x-auto sm:mx-0">  {/* Negative margin on mobile to counter container padding */}
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-4 py-2 text-left">Ticker</th>
+                          <th className="px-4 py-2 text-left">7D Chart</th>
+                          <th className="px-4 py-2 text-left">Buy Date</th>
+                          <th className="px-4 py-2 text-left">Current Price</th>
+                          <th className="px-4 py-2 text-left">Current Position Value</th>
+                          <th className="px-4 py-2 text-left">Performance $</th>
+                          <th className="px-4 py-2 text-left">Performance %</th>
+                          <th className="px-4 py-2 text-left">Buy Price</th>
+                          <th className="px-4 py-2 text-left">Quantity</th>
+                          <th className="px-4 py-2 text-left">Value</th>
+                          <th className="px-4 py-2 text-left">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(
+                          trades
+                            .filter(trade => !trade['Exit Quantity'])
+                            .reduce((acc, trade) => {
+                              const baseExchange = getBaseExchangeName(trade['Exchange']);
+                              if (!acc[baseExchange]) {
+                                acc[baseExchange] = {
+                                  pairs: {},
+                                  totalBuyValue: 0,
+                                  totalCurrentValue: 0
+                                };
+                              }
+                              
+                              const spotPair = trade['Spot Pair'];
+                              if (!acc[baseExchange].pairs[spotPair]) {
+                                acc[baseExchange].pairs[spotPair] = {
+                                  ...trade,
+                                  trades: [trade],
+                                  'Buy Value': trade['Buy Value'],
+                                  'Buy Quantity': trade['Buy Quantity'],
+                                  'Current Position Value': trade['Current Position Value'] || 0,
+                                  'Performance $': (trade['Current Position Value'] || 0) - trade['Buy Value'],
+                                  'Performance %': ((trade['Current Position Value'] || 0) - trade['Buy Value']) / trade['Buy Value'] * 100,
+                                  'Todays Price': trade['Todays Price'],
+                                  'Buy Price': trade['Buy Price'],
+                                };
+                              } else {
+                                const existing = acc[baseExchange].pairs[spotPair];
+                                existing.trades.push(trade);
+                                existing['Buy Value'] += trade['Buy Value'];
+                                existing['Buy Quantity'] += trade['Buy Quantity'];
+                                existing['Current Position Value'] += trade['Current Position Value'] || 0;
+                                existing['Performance $'] = existing['Current Position Value'] - existing['Buy Value'];
+                                existing['Buy Price'] = existing['Buy Value'] / existing['Buy Quantity'];
+                                existing['Performance %'] = (existing['Performance $'] / existing['Buy Value']) * 100;
+                                existing['Todays Price'] = trade['Todays Price'];
+                              }
+
+                              // Update exchange totals
+                              acc[baseExchange].totalBuyValue += trade['Buy Value'];
+                              acc[baseExchange].totalCurrentValue += trade['Current Position Value'] || 0;
+                              
+                              return acc;
+                            }, {} as Record<string, {
+                              pairs: Record<string, Trade & { trades: Trade[] }>,
+                              totalBuyValue: number,
+                              totalCurrentValue: number
+                            }>)
+                        ).map(([exchange, { pairs, totalBuyValue, totalCurrentValue }]) => (
+                          <React.Fragment key={exchange}>
+                            <tr className="border-t-2 border-b-2 border-gray-300 shadow-sm bg-slate-200">
+                              <td className="px-4 py-3" colSpan={2}>
+                                <div className="flex items-center gap-4">
+                                  <span className="text-lg font-bold">{exchange}</span>
+                                  <span className="text-sm text-gray-600">
+                                    Buy Value: ${formatNumber(totalBuyValue)} → Current Value: ${formatNumber(totalCurrentValue)} 
+                                    <span className={`ml-2 ${totalCurrentValue - totalBuyValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      ({formatNumber(((totalCurrentValue - totalBuyValue) / totalBuyValue) * 100, 2)}%)
+                                    </span>
+                                  </span>
+                                </div>
+                              </td>
+                              <td colSpan={9}></td>
+                            </tr>
+                            {Object.entries(pairs)
+                              .sort(([, a], [, b]) => (b['Performance %'] || 0) - (a['Performance %'] || 0))
+                              .map(([spotPair, aggregatedTrade]) => (
+                                <React.Fragment key={spotPair}>
+                                  {aggregatedTrade.trades.length > 1 && (
+                                    <tr className="font-semibold bg-gray-200 border-b">
+                                      <td className="px-4 py-2">
+                                        <div className="flex items-center gap-2">
+                                          {spotPair}
                                           <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                            trade['market_type'] === 'perp' 
+                                            aggregatedTrade.trades[0]['market_type'] === 'perp' 
                                               ? 'bg-purple-100 text-purple-800'
-                                              : trade['market_type'] === 'pre-market'
+                                              : aggregatedTrade.trades[0]['market_type'] === 'pre-market'
                                                 ? 'bg-red-100 text-red-800'
-                                                : trade['market_type'] === 'sol'
+                                                : aggregatedTrade.trades[0]['market_type'] === 'sol'
                                                   ? 'bg-gradient-to-r from-[#00FFA3] to-[#DC1FFF] text-white'
                                                   : 'bg-blue-100 text-blue-800'
                                           }`}>
-                                            {trade['market_type']}
+                                            {aggregatedTrade.trades[0]['market_type']}
                                           </span>
-                                        )}
-                                        {trade.notes && (
-                                          <TooltipUI>
-                                            <TooltipTrigger asChild>
-                                              <button
-                                                className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setSelectedNotes(trade.notes || '');
-                                                  setShowNotesDialog(true);
-                                                }}
-                                              >
-                                                <Info className="w-4 h-4" />
-                                              </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                              <p>{trade.notes}</p>
-                                            </TooltipContent>
-                                          </TooltipUI>
-                                        )}
-                                        {(() => {
-                                          const performance = trade['Performance %'] || 0;
-                                          const previousSells = trade['Previous Sells'] || [];
-                                          
-                                          // Calculate total sold percentage
-                                          const totalSoldPercentage = previousSells.reduce((total, sell) => 
-                                            total + sell.percentage, 0);
-                                          
-                                          // Check if we've already sold at specific thresholds
-                                          const hasSold30 = previousSells.some(sell => sell.percentage === 30);
-                                          const hasSold20 = previousSells.some(sell => sell.percentage === 20);
-                                          const hasSold10 = previousSells.some(sell => sell.percentage === 10);
-                                          
-                                          // Show MARKET badge if we've already sold 30% or more
-                                          if (hasSold30 || totalSoldPercentage >= 30) {
-                                            return (
-                                              <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-orange-600">
-                                                MARKET
-                                              </span>
-                                            );
-                                          }
-                                          
-                                          // Modified logic for showing sell badges
-                                          if (hasSold20) {
-                                            // After selling 20%, only show 30% badge when performance >= 100%
-                                            if (performance >= 100) {
+                                          {aggregatedTrade.trades[0].notes && (
+                                            <span className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                                              {aggregatedTrade.trades[0].notes}
+                                            </span>
+                                          )}
+                                          {(() => {
+                                            const performance = aggregatedTrade['Performance %'] || 0;
+                                            const previousSells = aggregatedTrade.trades.reduce((acc, trade) => {
+                                              return acc.concat(trade['Previous Sells'] || []);
+                                            }, [] as { percentage: number; quantity: number; price: number; date: string; }[]);
+                                            
+                                            // Check if we've already sold at specific thresholds
+                                            const hasSold30 = previousSells.some(sell => sell.percentage === 30);
+                                            const hasSold20 = previousSells.some(sell => sell.percentage === 20);
+                                            const hasSold10 = previousSells.some(sell => sell.percentage === 10);
+                                            
+                                            // Show MARKET badge only if we've specifically sold 30%
+                                            if (hasSold30) {
                                               return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
-                                                  SELL 30%
+                                                <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-orange-600">
+                                                  MARKET
                                                 </span>
                                               );
                                             }
-                                          } else if (hasSold10) {
-                                            // After selling 10%, only show 20% badge when performance >= 50%
-                                            if (performance >= 50) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
-                                                  SELL 20%
-                                                </span>
-                                              );
-                                            }
-                                          } else {
-                                            // No sells yet, show first appropriate badge
-                                            if (performance >= 100) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
-                                                  SELL 30%
-                                                </span>
-                                              );
-                                            } else if (performance >= 50) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
-                                                  SELL 20%
-                                                </span>
-                                              );
-                                            } else if (performance >= 25) {
-                                              return (
-                                                <span className="px-2 py-0.5 text-xs font-medium text-white rounded-full bg-green-400">
-                                                  SELL 10%
-                                                </span>
-                                              );
-                                            }
-                                          }
-                                          
-                                          return null;
-                                        })()}
-                                        {trade['Previous Sells'] && trade['Previous Sells'].length > 0 && (
-                                          <TooltipUI delayDuration={0}>
-                                            <TooltipTrigger asChild>
-                                              <button
-                                                className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
-                                                onClick={(e) => e.stopPropagation()}
-                                              >
-                                                <div className="flex items-center gap-1">
-                                                  <History className="w-4 h-4" />
-                                                  <span className="text-xs font-medium">
-                                                    {trade['Previous Sells'].length}
+                                            
+                                            // Modified logic for showing sell badges
+                                            if (hasSold20) {
+                                              // After selling 20%, only show 30% badge when performance >= 100%
+                                              if (performance >= 100) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                                    SELL 30%
                                                   </span>
-                                                </div>
-                                              </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent 
-                                              side="right" 
-                                              className="max-w-sm p-3 text-sm whitespace-pre-line bg-white border border-gray-100 rounded-lg shadow-lg"
-                                            >
-                                              <div className="space-y-2">
-                                                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                                                  <History className="w-4 h-4 text-gray-500" />
-                                                  <p className="font-medium text-gray-900">Previous Sells</p>
-                                                </div>
-                                                <div className="space-y-1.5 text-gray-600">
-                                                  {trade['Previous Sells'].map((sell, index) => (
-                                                    <div key={index} className="flex items-center justify-between">
-                                                      <span>{formatDate(sell.date)}</span>
-                                                      <span className="font-medium">
-                                                        {formatNumber(sell.quantity)} @ ${formatNumber(sell.price)}
-                                                        <span className="ml-1 text-xs text-gray-500">
-                                                          ({sell.percentage}%)
+                                                );
+                                              }
+                                            } else if (hasSold10) {
+                                              // After selling 10%, only show 20% badge when performance >= 50%
+                                              if (performance >= 50) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                                    SELL 20%
+                                                  </span>
+                                                );
+                                              }
+                                            } else {
+                                              // No sells yet, show first appropriate badge
+                                              if (performance >= 100) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                                    SELL 30%
+                                                  </span>
+                                                );
+                                              } else if (performance >= 50) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                                    SELL 20%
+                                                  </span>
+                                                );
+                                              } else if (performance >= 25) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-400">
+                                                    SELL 10%
+                                                  </span>
+                                                );
+                                              }
+                                            }
+                                            
+                                            return null;
+                                          })()}
+                                          {(() => {
+                                            const allPreviousSells = aggregatedTrade.trades.reduce((acc, trade) => {
+                                              return acc.concat(trade['Previous Sells'] || []);
+                                            }, [] as { percentage: number; quantity: number; price: number; date: string; }[]);
+
+                                            if (allPreviousSells.length > 0) {
+                                              return (
+                                                <TooltipUI delayDuration={0}>
+                                                  <TooltipTrigger asChild>
+                                                    <button
+                                                      className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                      <div className="flex items-center gap-1">
+                                                        <History className="w-4 h-4" />
+                                                        <span className="text-xs font-medium">
+                                                          {allPreviousSells.length}
                                                         </span>
-                                                      </span>
+                                                      </div>
+                                                    </button>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent 
+                                                    side="right" 
+                                                    className="max-w-sm p-3 text-sm whitespace-pre-line bg-white border border-gray-100 rounded-lg shadow-lg"
+                                                  >
+                                                    <div className="space-y-2">
+                                                      <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                                        <History className="w-4 h-4 text-gray-500" />
+                                                        <p className="font-medium text-gray-900">Previous Sells</p>
+                                                      </div>
+                                                      <div className="space-y-1.5 text-gray-600">
+                                                        {allPreviousSells.map((sell, index) => (
+                                                          <div key={index} className="flex items-center justify-between">
+                                                            <span>{formatDate(sell.date)}</span>
+                                                            <span className="font-medium">
+                                                              {formatNumber(sell.quantity)} @ ${formatNumber(sell.price)}
+                                                              <span className="ml-1 text-xs text-gray-500">
+                                                                ({sell.percentage}%)
+                                                              </span>
+                                                            </span>
+                                                          </div>
+                                                        ))}
+                                                      </div>
                                                     </div>
-                                                  ))}
+                                                  </TooltipContent>
+                                                </TooltipUI>
+                                              );
+                                            }
+                                            return null;
+                                          })()}
+                                        </div>
+                                      </td>
+                                      <td></td>
+                                      <td className="px-4 py-2">
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 rounded-full">
+                                          {aggregatedTrade.trades.length} positions
+                                        </span>
+                                      </td>
+                                      <td className="px-4 py-2">${formatNumber(aggregatedTrade['Todays Price'])}</td>
+                                      <td className="px-4 py-2">${formatNumber(aggregatedTrade['Current Position Value'])}</td>
+                                      <td className={`px-4 py-2 ${(aggregatedTrade['Performance $'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        ${formatNumber(aggregatedTrade['Performance $'])}
+                                      </td>
+                                      <td className={`px-4 py-2 ${(aggregatedTrade['Performance %'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {formatNumber(aggregatedTrade['Performance %'], 5, true)}%
+                                      </td>
+                                      <td className="px-4 py-2">${formatNumber(aggregatedTrade['Buy Price'])}</td>
+                                      <td className="px-4 py-2">{formatNumber(aggregatedTrade['Buy Quantity'], 6)}</td>
+                                      <td className="px-4 py-2">${formatNumber(aggregatedTrade['Buy Value'])}</td>
+                                      <td className="px-4 py-2">
+                                        <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
+                                          <Button
+                                            onClick={() => updateSinglePrice(aggregatedTrade)}
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
+                                          >
+                                            Refresh
+                                          </Button>
+                                          <Button
+                                            onClick={() => {
+                                              setSelectedTrade(aggregatedTrade.trades[0]);
+                                              setIsSellModalOpen(true);
+                                            }}
+                                            variant="outline"
+                                            size="sm"
+                                            className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
+                                          >
+                                            Sell
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                  
+                                  {aggregatedTrade.trades.map((trade, index) => (
+                                    <tr 
+                                      key={index} 
+                                      className={`border-b hover:bg-gray-100 ${
+                                        aggregatedTrade.trades.length > 1 ? 'bg-gray-50' : 'bg-slate-25'
+                                      }`}
+                                    >
+                                      <td className="px-4 py-2">
+                                        <div className="flex items-center gap-2">
+                                          {aggregatedTrade.trades.length === 1 ? spotPair : '↳'}
+                                          {aggregatedTrade.trades.length === 1 && (
+                                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                              trade['market_type'] === 'perp' 
+                                                ? 'bg-purple-100 text-purple-800'
+                                                : trade['market_type'] === 'pre-market'
+                                                  ? 'bg-red-100 text-red-800'
+                                                  : trade['market_type'] === 'sol'
+                                                    ? 'bg-gradient-to-r from-[#00FFA3] to-[#DC1FFF] text-white'
+                                                    : 'bg-blue-100 text-blue-800'
+                                            }`}>
+                                              {trade['market_type']}
+                                            </span>
+                                          )}
+                                          {trade.notes && (
+                                            <TooltipUI>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedNotes(trade.notes || '');
+                                                    setShowNotesDialog(true);
+                                                  }}
+                                                >
+                                                  <Info className="w-4 h-4" />
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>{trade.notes}</p>
+                                              </TooltipContent>
+                                            </TooltipUI>
+                                          )}
+                                          {(() => {
+                                            const performance = trade['Performance %'] || 0;
+                                            const previousSells = trade['Previous Sells'] || [];
+                                            
+                                            // Check if we've already sold at specific thresholds
+                                            const hasSold30 = previousSells.some(sell => sell.percentage === 30);
+                                            const hasSold20 = previousSells.some(sell => sell.percentage === 20);
+                                            const hasSold10 = previousSells.some(sell => sell.percentage === 10);
+                                            
+                                            // Show MARKET badge only if we've specifically sold 30%
+                                            if (hasSold30) {
+                                              return (
+                                                <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-orange-600">
+                                                  MARKET
+                                                </span>
+                                              );
+                                            }
+                                            
+                                            // Modified logic for showing sell badges
+                                            if (hasSold20) {
+                                              // After selling 20%, only show 30% badge when performance >= 100%
+                                              if (performance >= 100) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                                    SELL 30%
+                                                  </span>
+                                                );
+                                              }
+                                            } else if (hasSold10) {
+                                              // After selling 10%, only show 20% badge when performance >= 50%
+                                              if (performance >= 50) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                                    SELL 20%
+                                                  </span>
+                                                );
+                                              }
+                                            } else {
+                                              // No sells yet, show first appropriate badge
+                                              if (performance >= 100) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-600">
+                                                    SELL 30%
+                                                  </span>
+                                                );
+                                              } else if (performance >= 50) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-500">
+                                                    SELL 20%
+                                                  </span>
+                                                );
+                                              } else if (performance >= 25) {
+                                                return (
+                                                  <span className="px-1.5 py-0.5 text-xs font-medium text-white rounded-full bg-green-400">
+                                                    SELL 10%
+                                                  </span>
+                                                );
+                                              }
+                                            }
+                                            
+                                            return null;
+                                          })()}
+                                          {trade['Previous Sells'] && trade['Previous Sells'].length > 0 && (
+                                            <TooltipUI delayDuration={0}>
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  <div className="flex items-center gap-1">
+                                                    <History className="w-4 h-4" />
+                                                    <span className="text-xs font-medium">
+                                                      {trade['Previous Sells'].length}
+                                                    </span>
+                                                  </div>
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent 
+                                                side="right" 
+                                                className="max-w-sm p-3 text-sm whitespace-pre-line bg-white border border-gray-100 rounded-lg shadow-lg"
+                                              >
+                                                <div className="space-y-2">
+                                                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                                    <History className="w-4 h-4 text-gray-500" />
+                                                    <p className="font-medium text-gray-900">Previous Sells</p>
+                                                  </div>
+                                                  <div className="space-y-1.5 text-gray-600">
+                                                    {trade['Previous Sells'].map((sell, index) => (
+                                                      <div key={index} className="flex items-center justify-between">
+                                                        <span>{formatDate(sell.date)}</span>
+                                                        <span className="font-medium">
+                                                          {formatNumber(sell.quantity)} @ ${formatNumber(sell.price)}
+                                                          <span className="ml-1 text-xs text-gray-500">
+                                                            ({sell.percentage}%)
+                                                          </span>
+                                                        </span>
+                                                      </div>
+                                                    ))}
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            </TooltipContent>
-                                          </TooltipUI>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="w-32 px-2 py-1 sm:px-4 sm:py-2">  {/* Smaller padding on mobile */}
-                                      <PriceSparkline 
-                                        spotPair={aggregatedTrade['Spot Pair']} 
-                                        width={120} 
-                                        height={40} 
-                                      />
-                                    </td>
-                                    <td className="px-4 py-2">{formatDate(trade['Buy Date'])}</td>
-                                    <td className="px-4 py-2">${formatNumber(trade['Todays Price'])}</td>
-                                    <td className="px-4 py-2">${formatNumber(trade['Current Position Value'])}</td>
-                                    <td className={`px-4 py-2 ${(trade['Performance $'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      ${formatNumber(trade['Performance $'])}
-                                    </td>
-                                    <td className={`px-4 py-2 ${(trade['Performance %'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      {formatNumber(trade['Performance %'], 5, true)}%
-                                    </td>
-                                    <td className="px-4 py-2">${formatNumber(trade['Buy Price'])}</td>
-                                    <td className="px-4 py-2">{formatNumber(trade['Buy Quantity'], 6)}</td>
-                                    <td className="px-4 py-2">${formatNumber(trade['Buy Value'])}</td>
-                                    <td className="px-4 py-2">
-                                      <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
-                                        <Button
-                                          onClick={() => updateSinglePrice(trade)}
-                                          variant="outline"
-                                          size="sm"
-                                          className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
-                                        >
-                                          Refresh
-                                        </Button>
-                                        <Button
-                                          onClick={() => {
-                                            setSelectedTrade(trade);
-                                            setIsSellModalOpen(true);
-                                          }}
-                                          variant="outline"
-                                          size="sm"
-                                          className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
-                                        >
-                                          Sell
-                                        </Button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </React.Fragment>
-                            ))}
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                  </table>
+                                              </TooltipContent>
+                                            </TooltipUI>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="w-32 min-w-[120px] h-[40px] px-2 py-1 sm:px-4 sm:py-2">
+                                        <div className="w-full h-full">
+                                          <PriceSparkline 
+                                            spotPair={aggregatedTrade['Spot Pair']} 
+                                            width={120} 
+                                            height={40} 
+                                          />
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-2">{formatDate(trade['Buy Date'])}</td>
+                                      <td className="px-4 py-2">${formatNumber(trade['Todays Price'])}</td>
+                                      <td className="px-4 py-2">${formatNumber(trade['Current Position Value'])}</td>
+                                      <td className={`px-4 py-2 ${(trade['Performance $'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        ${formatNumber(trade['Performance $'])}
+                                      </td>
+                                      <td className={`px-4 py-2 ${(trade['Performance %'] || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {formatNumber(trade['Performance %'], 5, true)}%
+                                      </td>
+                                      <td className="px-4 py-2">${formatNumber(trade['Buy Price'])}</td>
+                                      <td className="px-4 py-2">{formatNumber(trade['Buy Quantity'], 6)}</td>
+                                      <td className="px-4 py-2">${formatNumber(trade['Buy Value'])}</td>
+                                      <td className="px-4 py-2">
+                                        <div className="flex gap-1 sm:gap-2">  {/* Smaller gap between buttons on mobile */}
+                                          <Button
+                                            onClick={() => updateSinglePrice(trade)}
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-16 px-1 py-1 text-xs sm:w-20 sm:px-2"
+                                          >
+                                            Refresh
+                                          </Button>
+                                          <Button
+                                            onClick={() => {
+                                              setSelectedTrade(trade);
+                                              setIsSellModalOpen(true);
+                                            }}
+                                            variant="outline"
+                                            size="sm"
+                                            className="px-1 py-1 text-xs w-14 sm:w-16 sm:px-2"
+                                          >
+                                            Sell
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </React.Fragment>
+                              ))}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
