@@ -448,6 +448,19 @@ const CryptoPortfolio = () => {
 
   const fetchCryptoPrice = useCallback(async (symbol: string, type: string, exchange: string, tokenAddress?: string): Promise<number> => {
     try {
+      // Special handling for BEAM
+      if (symbol === 'BEAM') {
+        const response = await fetch('/api/beam-price');
+        const data = await response.json();
+        
+        if (!response.ok || data.error) {
+          console.error(`Error fetching BEAM price:`, data.error);
+          return 0;
+        }
+        
+        return data.price || 0;
+      }
+
       // If it's a pre-market position, return the buy price instead of fetching current price
       if (type === 'pre-market') {
         return 0; // Return 0 to handle the price update in updateSinglePrice/updateAllPrices
