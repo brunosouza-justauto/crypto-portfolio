@@ -8,7 +8,7 @@ const COINBASE_API = 'https://api.coinbase.com/v2';
 const MEXC_API = 'https://api.mexc.com/api/v3';
 const CMC_API = 'https://pro-api.coinmarketcap.com/v1';
 const DEXSCREENER_API = 'https://api.dexscreener.com/latest/dex';
-const WEEX_API = 'https://api.weex.com/api/spot/v1';
+//const WEEX_API = 'https://api.weex.com/api/spot/v1';
 
 const CMC_API_KEY = process.env.COINMARKETCAP_API_KEY;
 
@@ -159,7 +159,7 @@ async function getDexScreenerPrice(tokenAddress: string): Promise<number | null>
   });
 }
 
-async function getWeexPrice(symbol: string) {
+/*async function getWeexPrice(symbol: string) {
   return getCachedPrice(`weex:${symbol}`, async () => {
     const formattedSymbol = `${symbol}USDT`;
     try {
@@ -173,7 +173,7 @@ async function getWeexPrice(symbol: string) {
       return null;
     }
   });
-}
+}*/
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
