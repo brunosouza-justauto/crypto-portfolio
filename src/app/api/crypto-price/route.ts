@@ -8,6 +8,7 @@ const COINBASE_API = 'https://api.coinbase.com/v2';
 const MEXC_API = 'https://api.mexc.com/api/v3';
 const CMC_API = 'https://pro-api.coinmarketcap.com/v1';
 const DEXSCREENER_API = 'https://api.dexscreener.com/latest/dex';
+const WEEX_API = 'https://api.weex.com/api/spot/v1';
 
 const CMC_API_KEY = process.env.COINMARKETCAP_API_KEY;
 
@@ -158,6 +159,22 @@ async function getDexScreenerPrice(tokenAddress: string): Promise<number | null>
   });
 }
 
+async function getWeexPrice(symbol: string) {
+  return getCachedPrice(`weex:${symbol}`, async () => {
+    const formattedSymbol = `${symbol}USDT`;
+    try {
+      const response = await axios.get(`${WEEX_API}/market/ticker`, {
+        params: { symbol: formattedSymbol }
+      });
+      
+      return response.data.data?.price ? parseFloat(response.data.data.price) : null;
+    } catch (error) {
+      console.error('Weex API error:', error);
+      return null;
+    }
+  });
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get('symbol');
@@ -179,12 +196,12 @@ export async function GET(request: Request) {
       // Existing exchange logic
       switch (exchange) {
         case 'mexc':
-        case 'weex':
           price = await getMexcPrice(symbol);
           break;
         case 'coinex':
           price = await getCoinexPrice(symbol);
           break;
+        case 'weex':
         case 'kucoin':
           price = await getKucoinPrice(symbol);
           break;
