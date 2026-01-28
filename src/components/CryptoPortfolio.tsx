@@ -85,6 +85,7 @@ import {
   TooltipProvider 
 } from "@/components/ui/tooltip";
 import { PriceSparkline } from './PriceSparkline';
+import CryptoTaxReport from './CryptoTaxReport';
 
 interface SellModalProps {
   trade: Trade;
@@ -895,7 +896,7 @@ const CryptoPortfolio = () => {
         <div className="mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-4">
-              {['open-positions', 'closed-trades', 'performance'].map((tab) => (
+              {['open-positions', 'closed-trades', 'performance', 'tax'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -2182,6 +2183,10 @@ const CryptoPortfolio = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'tax' && trades.length > 0 && (
+              <CryptoTaxReport trades={trades} />
             )}
           </div>
         </div>
